@@ -3,26 +3,27 @@ from cellule import Cellule, CELLULE_VIDE, TRIANGLE_HAUT_GAUCHE, TRIANGLE_HAUT_D
 class Pierre_precieuse :
     def __init__(self, forme_pierre, couleur_pierre, identifiant_pierre = 0) :
         self.rotation = 0
-        self.groupe_de_cellules = forme_pierre
+        
+        self.groupe_de_cellules = []
+        for ligne in forme_pierre :
+            nouvelle_ligne = []
+            for etat in ligne :
+                nouvelle_ligne.append(Cellule(etat))
+            self.groupe_de_cellules.append(nouvelle_ligne)
+            
         self.couleur_pierre = couleur_pierre
+        
         self.identifiant_pierre = identifiant_pierre
         
         self.attribution_cellules_pierre()
     
     def dimensions(self) :
         return (len(self.groupe_de_cellules), len(self.groupe_de_cellules[0]))
-    
+
     def affichage_matrice_pierre(self) :
         for ligne in self.groupe_de_cellules :
             for cellule in ligne :
-                if cellule.est_vide() :
-                    print(" ", end = " ") # □
-                else :
-                    if   cellule.etat == CELLULE_PLEINE       : print("■", end = " ")
-                    elif cellule.etat == TRIANGLE_HAUT_GAUCHE : print("◤", end = " ")
-                    elif cellule.etat == TRIANGLE_HAUT_DROITE : print("◥", end = " ")
-                    elif cellule.etat == TRIANGLE_BAS_DROITE  : print("◢", end = " ")
-                    elif cellule.etat == TRIANGLE_BAS_GAUCHE  : print("◣", end = " ")
+                print(cellule, end = " ")
             print()
     
     def attribution_cellules_pierre(self) :
@@ -60,7 +61,7 @@ class Pierre_precieuse :
                         forme_pierre_carree[i_ligne] = [Cellule(), forme_pierre_carree[i_ligne][0], Cellule()]
                 else :
                     forme_pierre_carree = [ [Cellule(), Cellule(), Cellule()],
-                                            forme_pierre_carree[0],
+                                            forme_pierre_carree[0]           ,
                                             [Cellule(), Cellule(), Cellule()]
                                           ]
                 
@@ -142,19 +143,19 @@ class Pierre_precieuse :
             
             
             
-forme_triangle_jaune = [[Cellule(TRIANGLE_BAS_GAUCHE), Cellule(                   )],
-                        [Cellule(CELLULE_PLEINE     ), Cellule(TRIANGLE_BAS_GAUCHE)]]
+forme_triangle_jaune = [[TRIANGLE_BAS_GAUCHE , CELLULE_VIDE                                                  ],
+                        [CELLULE_PLEINE      , TRIANGLE_BAS_GAUCHE                                           ]]
 
-forme_carree_bleu    = [[Cellule(TRIANGLE_BAS_DROITE ), Cellule(TRIANGLE_BAS_GAUCHE )],
-                        [Cellule(TRIANGLE_HAUT_DROITE), Cellule(TRIANGLE_HAUT_GAUCHE)]]
+forme_carree_bleu    = [[TRIANGLE_BAS_DROITE , TRIANGLE_BAS_GAUCHE                                           ],
+                        [TRIANGLE_HAUT_DROITE, TRIANGLE_HAUT_GAUCHE                                          ]]
 
-forme_piece_rouge    = [[Cellule(TRIANGLE_HAUT_DROITE), Cellule(CELLULE_PLEINE)     , Cellule(TRIANGLE_BAS_GAUCHE)]]
+forme_piece_rouge    = [[TRIANGLE_HAUT_DROITE, CELLULE_PLEINE      , TRIANGLE_BAS_GAUCHE                     ]]
 
 
-forme_triangle_blanc = [[Cellule(                   ), Cellule(TRIANGLE_BAS_DROITE), Cellule(TRIANGLE_BAS_GAUCHE), Cellule(                   )],
-                        [Cellule(TRIANGLE_BAS_DROITE), Cellule(CELLULE_PLEINE     ), Cellule(CELLULE_PLEINE     ), Cellule(TRIANGLE_BAS_GAUCHE)]]
+forme_triangle_blanc = [[CELLULE_VIDE        , TRIANGLE_BAS_DROITE , TRIANGLE_BAS_GAUCHE, CELLULE_VIDE       ],
+                        [TRIANGLE_BAS_DROITE , CELLULE_PLEINE      , CELLULE_PLEINE     , TRIANGLE_BAS_GAUCHE]]
 
-forme_petit_triangle = [[Cellule(TRIANGLE_BAS_DROITE), Cellule(TRIANGLE_BAS_GAUCHE)]]
+forme_petit_triangle = [[TRIANGLE_BAS_DROITE , TRIANGLE_BAS_GAUCHE                                           ]]
 
 
 Triangle_jaune       = Pierre_precieuse(forme_triangle_jaune, COULEUR_JAUNE       )
@@ -180,8 +181,9 @@ def creation_lot_pierres(avec_triangle_noir = False, avec_triangle_transparent =
         
     return lot
 
-test = Triangle_noir
-test.affichage_matrice_pierre()
-test.rotation_pierre_90_degres_sens_horaire()
-print()
-test.affichage_matrice_pierre()
+if __name__ == "__main__" :
+    test = Triangle_blanc
+    test.affichage_matrice_pierre()
+    test.rotation_pierre_90_degres_sens_horaire()
+    print()
+    test.affichage_matrice_pierre()

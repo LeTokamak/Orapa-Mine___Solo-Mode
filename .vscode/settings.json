@@ -4,13 +4,22 @@
         "bloquee",
         "carree",
         "degres",
+        "edgecolor",
         "etat",
+        "facecolor",
+        "fontsize",
+        "geometrique",
+        "HEXA",
         "INFERIEUR",
+        "lightgray",
+        "matplolib",
         "precieuse",
         "REFLEXION",
         "regle",
         "regles",
         "SUPERIEUR",
-        "VISIBILITE"
+        "VISIBILITE",
+        "xlim",
+        "ylim"
     ]
 }
