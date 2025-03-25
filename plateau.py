@@ -1,4 +1,4 @@
-from cellule import Cellule, CELLULE_VIDE, TRIANGLE_HAUT_GAUCHE, TRIANGLE_HAUT_DROITE, TRIANGLE_BAS_DROITE, TRIANGLE_BAS_GAUCHE, CELLULE_PLEINE, COULEUR_TRANSPARENTE, COULEUR_BLANC, COULEUR_JAUNE, COULEUR_ROUGE, COULEUR_BLEU, COULEUR_NOIR
+from cellule import Cellule, CELLULE_VIDE, TRIANGLE_HAUT_GAUCHE, TRIANGLE_HAUT_DROITE, TRIANGLE_BAS_DROITE, TRIANGLE_BAS_GAUCHE, CELLULE_PLEINE, COULEUR_TRANSPARENTE, COULEUR_BLANC, COULEUR_JAUNE, COULEUR_ROUGE, COULEUR_BLEU, COULEUR_NOIR, VERS_LA_DROITE, VERS_LA_GAUCHE, VERS_LE_BAS, VERS_LE_HAUT
 from pierre import Pierre_precieuse, creation_lot_pierres
 import random as rd
 import matplotlib.pyplot as plt
@@ -28,6 +28,9 @@ class Plateau :
         self.grille = [ [Cellule() for i in range(self.nb_colonnes)] for j in range(self.nb_lignes) ]
         
         self.lot_pierres_precieuse = creation_lot_pierres(avec_triangle_noir, avec_triangle_transparent)
+        
+        self.entrees_disponibles_nombres = [str(i)    for i in range(1, self.nb_lignes + self.nb_colonnes + 1)]
+        self.entrees_disponibles_lettres = [chr(64+i) for i in range(1, self.nb_lignes + self.nb_colonnes + 1)]
     
     def nettoyage_grille(self): 
         self.grille = [ [Cellule() for i in range(self.nb_colonnes)] for j in range(self.nb_lignes) ]
@@ -250,13 +253,25 @@ class Plateau :
     def affichage_graph_matplotlib(self) :
         
         # Créer une figure et un axe
-        fig, ax = plt.subplots(figsize=(self.nb_colonnes, self.nb_lignes))
+        fig, ax = plt.subplots(figsize=(self.nb_colonnes+1, self.nb_lignes+1))
 
         # Cacher les axes
         ax.axis('off')
 
         # Définir la taille de chaque cellule
         cell_size = 1
+        
+        # Fixer le rapport d'aspect pour éviter la déformation
+        ax.set_aspect('equal', adjustable='box')
+
+        # Ajouter des lignes de grille
+        for i in range(self.nb_lignes + 1):
+            # Ligne horizontale
+            ax.plot([0, self.nb_colonnes * cell_size], [(self.nb_lignes - i) * cell_size, (self.nb_lignes - i) * cell_size], color='gray', linewidth=2)
+
+        for j in range(self.nb_colonnes + 1):
+            # Ligne verticale
+            ax.plot([j * cell_size, j * cell_size], [0, self.nb_lignes * cell_size], color='gray', linewidth=2)
 
         # Dessiner les cellules de la grille
         for i in range(self.nb_lignes):
@@ -266,29 +281,200 @@ class Plateau :
                 y = (self.nb_lignes - 1 - i) * cell_size
 
                 ax.add_patch(self.grille[i][j].forme_geometrique_matplolib(x, y, cell_size))
-                    
 
-        # Ajouter des étiquettes pour les colonnes
-        col_labels = [chr(65 + i) for i in range(self.nb_colonnes)]
-        for j, label in enumerate(col_labels):
-            ax.text(j * cell_size + cell_size / 2, self.nb_lignes * cell_size + 0.2, label, ha='center', va='center')
+        # Ajouter des étiquettes pour les colonnes (côté supérieur)
+        for j in range(self.nb_colonnes):
+            ax.text(j * cell_size + cell_size / 2, self.nb_lignes * cell_size + 0.2, str(j + 1), ha='center', va='center', color='white')
 
-        # Ajouter des étiquettes pour les lignes
-        row_labels = [str(i + 1) for i in range(self.nb_lignes)]
-        for i, label in enumerate(row_labels):
-            ax.text(-0.2, (self.nb_lignes - 1 - i) * cell_size + cell_size / 2, label, ha='center', va='center')
+        # Ajouter des étiquettes pour les colonnes (côté droit)
+        for i in range(self.nb_lignes):
+            ax.text(self.nb_colonnes * cell_size + 0.2, (self.nb_lignes - 1 - i) * cell_size + cell_size / 2, str(self.nb_colonnes + i + 1), ha='center', va='center', color='white')
+
+        # Ajouter des étiquettes pour les lignes (côté gauche)
+        for i in range(self.nb_lignes):
+            ax.text(-0.2, (self.nb_lignes - 1 - i) * cell_size + cell_size / 2, chr(65 + i), ha='center', va='center', color='white')
+
+        # Ajouter des étiquettes pour les lignes (côté inférieur)
+        for j in range(self.nb_colonnes):
+            ax.text(j * cell_size + cell_size / 2, -0.2, chr(self.nb_lignes + 65 + j), ha='center', va='center', color='white')       
 
         # Ajuster les limites de l'axe
-        ax.set_xlim(0, self.nb_colonnes * cell_size)
-        ax.set_ylim(0, self.nb_lignes * cell_size)
+        ax.set_xlim(-0.5, self.nb_colonnes * cell_size + 0.5)
+        ax.set_ylim(-0.5, self.nb_lignes * cell_size   + 0.5)
 
         plt.show()
-
-
+        
+    
+    def tirer_laser(self, entree_laser_brute_valide) :
+        
+        index_ligne_colonne   = None
+        ligne_selectionnee    = False
+        sens_croissant_choisi = False
+                
+        ### Interprétation entrée
+        
+        if entree_laser_brute_valide in self.entrees_disponibles_nombres :
+            if int(entree_laser_brute_valide)-1 < self.nb_colonnes :
+                # Colonne en sens croissant (haut vers le bas)
+                index_ligne_colonne   = int(entree_laser_brute_valide)-1
+                ligne_selectionnee    = False
+                sens_croissant_choisi = True
+                
+            else : 
+                # Ligne en sens décroissant (droite vers la gauche)
+                index_ligne_colonne   = int(entree_laser_brute_valide) - 1 - self.nb_colonnes
+                ligne_selectionnee    = True
+                sens_croissant_choisi = False
+                
+        else :
+            code_ascii = ord(entree_laser_brute_valide)
+            index_brute = code_ascii - 64 - 1
             
+            if index_brute < self.nb_lignes :
+                # Ligne en sens croissant (gauche vers la droite)
+                index_ligne_colonne   = index_brute
+                ligne_selectionnee    = True
+                sens_croissant_choisi = True
+                
+            else :
+                # Colonne en sens décroissant (bas vers le haut)
+                index_ligne_colonne   = index_brute - self.nb_lignes
+                ligne_selectionnee    = False
+                sens_croissant_choisi = False
+        
+        ### Variable de départ
+        
+        if sens_croissant_choisi :
+            i_ligne   = -1
+            j_colonne = -1
+        else :
+            i_ligne   = self.nb_lignes
+            j_colonne = self.nb_colonnes
+        
+        if ligne_selectionnee :
+            i_ligne = index_ligne_colonne
+        else :
+            j_colonne = index_ligne_colonne
             
-plateau = Plateau()
+        if       sens_croissant_choisi and not ligne_selectionnee : direction_laser = VERS_LE_BAS
+        elif not sens_croissant_choisi and not ligne_selectionnee : direction_laser = VERS_LE_HAUT
+        elif     sens_croissant_choisi and     ligne_selectionnee : direction_laser = VERS_LA_DROITE
+        elif not sens_croissant_choisi and     ligne_selectionnee : direction_laser = VERS_LA_GAUCHE
+        
+        ### Simulation du laser
+        
+        trajet_du_laser_terminee            = False
+        
+        liste_identifiants_pierres_touchees = []
+        nombre_de_reflexions                = 0
+        liste_couleurs_pierres_touchees     = []
+        
+        while not trajet_du_laser_terminee :
+            
+            if   direction_laser == VERS_LE_BAS    : i_ligne   += 1
+            elif direction_laser == VERS_LE_HAUT   : i_ligne   -= 1
+            elif direction_laser == VERS_LA_DROITE : j_colonne += 1
+            elif direction_laser == VERS_LA_GAUCHE : j_colonne -= 1
+            
+            if (i_ligne   == -1               or 
+                i_ligne   == self.nb_lignes   or
+                j_colonne == -1               or
+                j_colonne == self.nb_colonnes ):
+                trajet_du_laser_terminee = True
+            
+            else :
+                nouvelle_direction_laser = self.grille[i_ligne][j_colonne].reflexion(direction_laser)
+                
+                if direction_laser != nouvelle_direction_laser :
+                    nombre_de_reflexions += 1
+                    
+                    if self.grille[i_ligne][j_colonne].identifiant_pierre not in liste_identifiants_pierres_touchees :
+                        liste_identifiants_pierres_touchees.append(self.grille[i_ligne][j_colonne].identifiant_pierre)
+                        
+                    if self.grille[i_ligne][j_colonne].couleur            not in liste_couleurs_pierres_touchees :
+                        liste_couleurs_pierres_touchees.append(self.grille[i_ligne][j_colonne].couleur)
+                
+                direction_laser = nouvelle_direction_laser
+                
+        ### Sortie du laser
+        
+        index_de_sortie_grille_nombre_lettre = ""
+        
+        if   i_ligne   == -1               : index_de_sortie_grille_nombre_lettre = str(j_colonne + 1)
+        elif j_colonne == self.nb_colonnes : index_de_sortie_grille_nombre_lettre = str(i_ligne   + self.nb_colonnes + 1)
+        elif j_colonne == -1               : index_de_sortie_grille_nombre_lettre = chr(64 + 1 + i_ligne)
+        elif i_ligne   == self.nb_lignes   : index_de_sortie_grille_nombre_lettre = chr(64 + 1 + self.nb_lignes + j_colonne)
+        
+        if COULEUR_NOIR in liste_couleurs_pierres_touchees :
+            print("Le laser ne ressort pas, il a probablement été absorbé par une pierre précieuse d'un noir profond...")
+            
+        else :
+            print(f"Le laser sort en {index_de_sortie_grille_nombre_lettre}.")
+            print(f"Il a été réfléchi {nombre_de_reflexions} fois sur des pierres précieuses.")
+            
+            if len(liste_identifiants_pierres_touchees) <= 1 : mot_pierre = "pierre"
+            else                                             : mot_pierre = "pierres"
+                
+            print(f"Il a touché lors de ces réflexions {len(liste_identifiants_pierres_touchees)} {mot_pierre}.")
+            
+            if COULEUR_TRANSPARENTE in liste_couleurs_pierres_touchees :
+                liste_couleurs_pierres_touchees.remove(COULEUR_TRANSPARENTE)
+                
+            if COULEUR_NOIR in liste_couleurs_pierres_touchees :
+                liste_couleurs_pierres_touchees.remove(COULEUR_NOIR)
+            
+            if   len(liste_couleurs_pierres_touchees) == 0 : mot_couleur = None
+            
+            elif len(liste_couleurs_pierres_touchees) == 1 :
+                if   COULEUR_BLANC         in liste_couleurs_pierres_touchees : mot_couleur = "Blanc"
+                elif COULEUR_JAUNE         in liste_couleurs_pierres_touchees : mot_couleur = "Jaune"
+                elif COULEUR_BLEU          in liste_couleurs_pierres_touchees : mot_couleur = "Bleu"
+                elif COULEUR_ROUGE         in liste_couleurs_pierres_touchees : mot_couleur = "Rouge"
+                
+            elif len(liste_couleurs_pierres_touchees) == 2 :
+                if   COULEUR_BLANC         in liste_couleurs_pierres_touchees :
+                    if   COULEUR_JAUNE     in liste_couleurs_pierres_touchees : mot_couleur = "Beige"
+                    elif COULEUR_BLEU      in liste_couleurs_pierres_touchees : mot_couleur = "Cyan"
+                    elif COULEUR_ROUGE     in liste_couleurs_pierres_touchees : mot_couleur = "Rose"
+                elif COULEUR_JAUNE         in liste_couleurs_pierres_touchees :
+                    if   COULEUR_BLEU      in liste_couleurs_pierres_touchees : mot_couleur = "Vert"
+                    elif COULEUR_ROUGE     in liste_couleurs_pierres_touchees : mot_couleur = "Orange"
+                elif COULEUR_BLEU          in liste_couleurs_pierres_touchees :
+                    if COULEUR_ROUGE       in liste_couleurs_pierres_touchees : mot_couleur = "Violet"
+                else                                                          : mot_couleur = "ERREUR"
+                
+            elif len(liste_couleurs_pierres_touchees) == 3 :
+                if   COULEUR_BLANC         in liste_couleurs_pierres_touchees :
+                    if   COULEUR_JAUNE     in liste_couleurs_pierres_touchees : 
+                        if COULEUR_BLEU    in liste_couleurs_pierres_touchees : mot_couleur = "Vert Clair"
+                        elif COULEUR_ROUGE in liste_couleurs_pierres_touchees : mot_couleur = "Orange Clair"
+                    elif COULEUR_BLEU      in liste_couleurs_pierres_touchees :
+                        if COULEUR_ROUGE   in liste_couleurs_pierres_touchees : mot_couleur = "Violet Clair"
+                elif COULEUR_JAUNE         in liste_couleurs_pierres_touchees :
+                    if COULEUR_BLEU        in liste_couleurs_pierres_touchees :
+                        if COULEUR_ROUGE   in liste_couleurs_pierres_touchees : mot_couleur = "Noir"
+                else                                                          : mot_couleur = "ERREUR"
+                
+            elif len(liste_couleurs_pierres_touchees) == 4 : mot_couleur = "Gris"
+            
+            if mot_couleur == None :
+                print(f"Le laser n'a aucune couleur.")
+            else :
+                print(f"Le laser resort en étant {mot_couleur}.")
+
+plateau = Plateau(avec_triangle_noir=True, avec_triangle_transparent=True)
 plateau.choix_aleatoire_configuration()
-plateau.affichage_matrice_pierre()
+
+for i in plateau.entrees_disponibles_nombres :
+    print()
+    print()
+    print(i)
+    plateau.tirer_laser(str(i))
+
+for i in plateau.entrees_disponibles_lettres :
+    print()
+    print()
+    print(i)
+    plateau.tirer_laser(i)
 
 plateau.affichage_graph_matplotlib()
