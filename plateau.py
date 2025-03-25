@@ -43,6 +43,8 @@ class Plateau :
             
             self.nettoyage_grille()
             
+            rd.shuffle(self.lot_pierres_precieuse)
+            
             for pierre in self.lot_pierres_precieuse :
                 
                 ### Verification emplacement valide - Partie 1
