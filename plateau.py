@@ -464,19 +464,21 @@ class Plateau :
             else :
                 print(f"Le laser resort en étant {mot_couleur}.")
 
-plateau = Plateau(avec_triangle_noir=True, avec_triangle_transparent=True)
-plateau.choix_aleatoire_configuration()
+if __name__ == "__main__" :
 
-for i in plateau.entrees_disponibles_nombres :
-    print()
-    print()
-    print(i)
-    plateau.tirer_laser(str(i))
+    plateau = Plateau(avec_triangle_noir=True, avec_triangle_transparent=True)
+    plateau.choix_aleatoire_configuration()
 
-for i in plateau.entrees_disponibles_lettres :
-    print()
-    print()
-    print(i)
-    plateau.tirer_laser(i)
+    for i in plateau.entrees_disponibles_nombres :
+        print()
+        print()
+        print(i)
+        plateau.tirer_laser(str(i))
 
-plateau.affichage_graph_matplotlib()
+    for i in plateau.entrees_disponibles_lettres :
+        print()
+        print()
+        print(i)
+        plateau.tirer_laser(i)
+
+    plateau.affichage_graph_matplotlib()
